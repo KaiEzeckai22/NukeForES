@@ -522,8 +522,8 @@ int extractionProcess()
     // DETECT INVALID START (err,a.b,a23)
     if (!checkValid(extract[0]))
     {
-        state = 4;
-        // return 0;
+        //state = 4;
+        return 0;
     }
 
     for (int i = 0; i < extractSize; i++)
@@ -548,7 +548,8 @@ int extractionProcess()
                     }
                     else
                     {
-                        state = 4;
+                        //state = 4;
+                        return 0;
                     }
                 }
                 break;
@@ -582,7 +583,8 @@ int extractionProcess()
                 }
                 else
                 {
-                    state = 4;
+                    //state = 4;
+                    return 0;
                 }
                 break;
             case 1:
@@ -595,8 +597,9 @@ int extractionProcess()
                 //return 0;
                 break;
             case 2:
-                state = 4;
-                //return 0;
+                partiality = 1;
+                state = 3;
+                backTrack = 1;
                 break;
             default:
                 break;
@@ -621,7 +624,8 @@ int extractionProcess()
                 }
                 else
                 {
-                    state = 4;
+                    //state = 4;
+                    return 0;
                 }
                 break;
             case 1:
@@ -684,17 +688,24 @@ int extractionProcess()
                 exponent[exponentSize] = extract[i]; // NEEDS SHIFT i @ exponent
                 exponentSize++;
             }
+            else if (i == (extractSize - 1))
+            {
+                ignored[0] = 'e';
+            }
             break;
         case 3: // EXPONENT AND IGNORED
             //ignored[i - (negFound + intSize + dotFound + decimalPlaces + exponentSize) - 1] = extract[i]; // NEEDS SHIFT i @ ignored
             if (backTrack)
             {
                 // ADD IT BACK IN
-                if(extract[i-1]=='e'){
+                if (extract[i - 1] == 'e')
+                {
                     ignored[ignoredSize] = 'e';
-                } else {
-                    ignored[ignoredSize] = '.'; 
-                    nonExponent[i-1] = '\0';
+                }
+                else
+                {
+                    ignored[ignoredSize] = '.';
+                    nonExponent[i - 1] = '\0';
                 }
                 ignoredSize++;
                 backTrack = 0;
