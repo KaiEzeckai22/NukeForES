@@ -541,7 +541,7 @@ int extractionProcess()
                 }
                 else
                 {
-                    if (nonExpFound)
+                    if (intSize)
                     {
                         partiality = 1;
                         state = 3;
@@ -576,9 +576,8 @@ int extractionProcess()
             switch (state)
             {
             case 0:
-                if (nonExpFound)
+                if (intSize)
                 {
-                    dotFound = 1;
                     state = 1;
                 }
                 else
@@ -587,9 +586,12 @@ int extractionProcess()
                 }
                 break;
             case 1:
+                if (!decimalPlaces)
+                {
+                    backTrack = 1;
+                }
                 partiality = 1;
                 state = 3;
-                backTrack = 1;
                 //return 0;
                 break;
             case 2:
@@ -604,18 +606,17 @@ int extractionProcess()
             switch (state)
             {
             case 0:
-                if (nonExpFound)
+                if (intSize)
                 {
-                    if (!expFound)
-                    {
-                        expFound = 1;
-                        state = 2;
-                    }
-                    else
+                    if (exponentSize)
                     {
                         partiality = 1;
                         state = 3;
                         backTrack = 1;
+                    }
+                    else
+                    {
+                        state = 2;
                     }
                 }
                 else
@@ -624,7 +625,7 @@ int extractionProcess()
                 }
                 break;
             case 1:
-                if (!expFound)
+                if (decimalPlaces)
                 {
                     expFound = 1;
                     state = 2;
@@ -651,9 +652,11 @@ int extractionProcess()
         {
             partiality = 1;
             state = 3;
-            if(extract[i-1]=='e'){
+            /*
+            if (extract[i - 1] == 'e')
+            {
                 backTrack = 1;
-            }
+            }*/
         }
 
         // EXTRACTION
@@ -662,7 +665,6 @@ int extractionProcess()
         case 0: // NON EXPONENT INTEGER
             if (isDigit(extract[i]))
             {
-                nonExpFound = 1;
                 intSize++;
             }
             nonExponent[nonExponentSize] = extract[i];
@@ -688,7 +690,12 @@ int extractionProcess()
             if (backTrack)
             {
                 // ADD IT BACK IN
-                ignored[ignoredSize] = 'e';
+                if(extract[i-1]=='e'){
+                    ignored[ignoredSize] = 'e';
+                } else {
+                    ignored[ignoredSize] = '.'; 
+                    nonExponent[i-1] = '\0';
+                }
                 ignoredSize++;
                 backTrack = 0;
             }
@@ -708,12 +715,8 @@ int extractionProcess()
         Serial.print(extract[i]);
         Serial.print(" / STATE: ");
         Serial.print(state);
-        Serial.print("   / Neg: ");
-        Serial.print(negFound);
         Serial.print(" / Int: ");
         Serial.print(intSize);
-        Serial.print(" / Dot: ");
-        Serial.print(dotFound);
         Serial.print(" / Dec: ");
         Serial.print(decimalPlaces);
         Serial.print(" / Expo: ");
