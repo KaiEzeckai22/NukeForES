@@ -85,7 +85,7 @@ void displayData()
         // SERIAL DISPLAY
         printAll(extractValue, convertedValue);
         // LCD DISPLAY
-        //displayAll(extractValue, convertedValue);
+        displayAll(extractValue, convertedValue);
     }
     else
     {
@@ -128,7 +128,7 @@ void printAll(int validity, float convertedValue)
         Serial.print("IGNORED: ");
         Serial.println(ignored);
         Serial.print("CONVERTED VALUE: ");
-        if (digitsSize > 6)
+        if (digitsSize > 20)
         {
             Serial.println("OVERFLOW");
         }
@@ -180,7 +180,7 @@ void displayAll(int validity, float convertedValue)
         delay(WT);
         allClear();
         row1Display("CONVERTED VALUE:");
-        if (digitsSize > 6)
+        if (digitsSize > 20)
         {
             row2Display("OVERFLOW");
         }
@@ -488,9 +488,14 @@ float convertExtended()
     }
     else if ((expo + decimalPlaces) > 6)
     {
-        // OVF FILTER
-        converted = nonExp * pow(10, expo) + 1;
-        return converted; //this is the unit limit I think, *10 or move to right will result to ovf
+        double nuke = 1;
+      	for(int i = 0; i < expo; i++){
+        	nuke = nuke * 10;
+        }
+      	converted = nonExp * nuke;
+      	// OVF FILTER
+        //converted = nonExp * pow(10, expo);
+        return converted - 0.001 ; //this is the unit limit I think, *10 or move to right will result to ovf
     }
     else
     {
@@ -751,6 +756,7 @@ int extractionProcess()
     Serial.print(" / Ign: ");
     Serial.print(ignoredSize);
     Serial.println();
+  
     if (state == 4)
     {
         return 0;
