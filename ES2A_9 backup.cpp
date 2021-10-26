@@ -517,11 +517,12 @@ int extractionProcess()
     bool negAftE = 0;
 
     bool invalid = 0;
+    int backTrack = 0;
 
     // DETECT INVALID START (err,a.b,a23)
     if (!checkValid(extract[0]))
     {
-        invalid = 1;
+        state = 4;
         // return 0;
     }
 
@@ -540,8 +541,15 @@ int extractionProcess()
                 }
                 else
                 {
-                    partiality = 1;
-                    state = 3;
+                    if (nonExpFound)
+                    {
+                        partiality = 1;
+                        state = 3;
+                    }
+                    else
+                    {
+                        state = 4;
+                    }
                 }
                 break;
             case 1:
@@ -575,16 +583,17 @@ int extractionProcess()
                 }
                 else
                 {
-                    invalid = 1;
+                    state = 4;
                 }
                 break;
             case 1:
                 partiality = 1;
                 state = 3;
+                backTrack = 1;
                 //return 0;
                 break;
             case 2:
-                state = 1;
+                state = 4;
                 //return 0;
                 break;
             default:
@@ -606,11 +615,12 @@ int extractionProcess()
                     {
                         partiality = 1;
                         state = 3;
+                        backTrack = 1;
                     }
                 }
                 else
                 {
-                    invalid = 1;
+                    state = 4;
                 }
                 break;
             case 1:
@@ -623,11 +633,13 @@ int extractionProcess()
                 {
                     partiality = 1;
                     state = 3;
+                    backTrack = 1;
                 }
                 break;
             case 2:
                 partiality = 1;
                 state = 3;
+                backTrack = 1;
                 break;
             default:
                 break;
@@ -639,6 +651,9 @@ int extractionProcess()
         {
             partiality = 1;
             state = 3;
+            if(extract[i-1]=='e'){
+                backTrack = 1;
+            }
         }
 
         // EXTRACTION
@@ -670,11 +685,12 @@ int extractionProcess()
             break;
         case 3: // EXPONENT AND IGNORED
             //ignored[i - (negFound + intSize + dotFound + decimalPlaces + exponentSize) - 1] = extract[i]; // NEEDS SHIFT i @ ignored
-            if (extract[i - 1] == 'e')
+            if (backTrack)
             {
                 // ADD IT BACK IN
-                ignored[ignoredSize] = extract[i - 1];
+                ignored[ignoredSize] = 'e';
                 ignoredSize++;
+                backTrack = 0;
             }
             ignored[ignoredSize] = extract[i];
             ignoredSize++;
@@ -720,7 +736,7 @@ int extractionProcess()
     Serial.print(" / Ign: ");
     Serial.print(ignoredSize);
     Serial.println();
-    if (invalid)
+    if (state == 4)
     {
         return 0;
     }
