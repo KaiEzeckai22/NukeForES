@@ -864,6 +864,7 @@ int extractionProcess()
     bool expFound = 0;
     bool eFound = 0;
     bool partiality = 0;
+    bool negFound = 0;
     bool negAftE = 0;
 
     // DETECT INVALID START (err,a.b,a23)
@@ -879,9 +880,9 @@ int extractionProcess()
         {
         case '-':
             // DETECT INVALID
-            if (i != 0)
+            if (i == 0)
             {
-                return -1;
+                negFound = 1;
             }
             else if (eFound)
             {
@@ -898,6 +899,8 @@ int extractionProcess()
                     partiality = 1;
                     state = 3;
                 }
+            } else {
+                return -1;
             }
 
             break;
@@ -958,7 +961,7 @@ int extractionProcess()
         case 1: // NON EXPONENT DECIMAL
             if (checkValid(extract[i]))
             {
-                nonExponent[i] = extract[i]; // NEEDS SHIFT i @ nonExponent 
+                nonExponent[i-(negFound+intSize+dotFound)] = extract[i]; // NEEDS SHIFT i @ nonExponent 
                 decimalPlaces++;
                 nonExponentSize++;
             }
@@ -971,7 +974,7 @@ int extractionProcess()
         case 2:
             if (checkValid(extract[i]))
             {
-                exponent[i] = extract[i]; // NEEDS SHIFT i @ exponent 
+                exponent[i-(negFound+intSize+dotFound+decimalPlaces)] = extract[i]; // NEEDS SHIFT i @ exponent 
                 exponentSize++;
             }
             else
@@ -981,7 +984,7 @@ int extractionProcess()
             }
             break;
         case 3:
-            ignored[i] = extract[i]; // NEEDS SHIFT i @ ignored 
+            ignored[i-(negFound+intSize+dotFound+decimalPlaces+exponentSize)] = extract[i]; // NEEDS SHIFT i @ ignored 
             ignoredSize++;
             break;
 
