@@ -37,9 +37,9 @@ void loop()
 {
     if (Serial.available() > 0)
     {
-        //String input = Serial.readString();
-        String input = "KKK";
-        input.concat(Serial.readString());
+        String input = Serial.readString();
+        //String input = "KKK";
+        //input.concat(Serial.readString());
         injectToBuffer(input);
         displayData();
         clearAllArray();
