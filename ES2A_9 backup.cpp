@@ -691,6 +691,7 @@ int extractionProcess()
             else if (i == (extractSize - 1))
             {
                 ignored[0] = 'e';
+                partiality = 1;
             }
             break;
         case 3: // EXPONENT AND IGNORED
