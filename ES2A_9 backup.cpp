@@ -14,7 +14,7 @@ int decimalPlaces = 0;
 int tolerance = 0;
 int digitsSize = 0;
 //String toTest[] = {"0aaKKK-7.23-24", "0aaKKK-7.23.-24", "0aaKKK-7..7-8"};
-String toTest[] = {"0aaKKK-.34", "0aaKKKd23", "0aaKKKa7.6e.5", "0aaKKK7..6e5", "0aaKKK7.66e-3", "0aaKKK7.6e8", "0aaKKK-7.6"};
+String toTest[] = {"0aaKKK-e1", "0aaKKK-7.2eabc", "0aaKKK7.34e1a", "0aaKKK7e-1", "0aaKKK7.6e.5", "0aaKKK7.2..6e5", "0aaKKK7.66e-3", "0aaKKK7.6e8", "0aaKKK-7.6"};
 int toTestSize = sizeof(toTest) / sizeof(toTest[0]);
 int start = 0;
 int end = 0;
@@ -584,7 +584,15 @@ int extractionProcess()
             switch (state)
             {
             case 0:
-                state = 2;
+                if (nonExpFound)
+                {
+                    expFound = 1;
+                    state = 2;
+                }
+                else
+                {
+                    invalid = 1;
+                }
                 break;
             case 1:
                 state = 2;
@@ -610,7 +618,8 @@ int extractionProcess()
         {
         case 0: // NON EXPONENT INTEGER
             //nonExponent[i] = extract[i];
-            if(isDigit(extract[i])){
+            if (isDigit(extract[i]))
+            {
                 nonExpFound = 1;
                 intSize++;
             }
@@ -627,7 +636,11 @@ int extractionProcess()
             break;
         case 2:
             //exponent[i - (negFound + intSize + dotFound + decimalPlaces) - 1] = extract[i]; // NEEDS SHIFT i @ exponent
-            exponentSize++;
+            if (isDigit(extract[i]))
+            {
+                expFound = 1;
+                exponentSize++;
+            }
             break;
         case 3:
             //ignored[i - (negFound + intSize + dotFound + decimalPlaces + exponentSize) - 1] = extract[i]; // NEEDS SHIFT i @ ignored
@@ -638,6 +651,22 @@ int extractionProcess()
         default:
             break;
         }
+        Serial.println();
+        Serial.print("EXT: ");
+        Serial.print(extract[i]);
+        Serial.print("   / Neg: ");
+        Serial.print(negFound);
+        Serial.print(" / Int: ");
+        Serial.print(intSize);
+        Serial.print(" / Dot: ");
+        Serial.print(dotFound);
+        Serial.print(" / Dec: ");
+        Serial.print(decimalPlaces);
+        Serial.print(" / Expo: ");
+        Serial.print(exponentSize);
+        Serial.print(" / Ign: ");
+        Serial.print(ignoredSize);
+        Serial.println();
     }
     Serial.println();
     Serial.print("Neg: ");
