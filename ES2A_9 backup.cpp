@@ -431,7 +431,7 @@ float convertExtended()
     }
     else
     {
-        tolerance = (6 - intSize) - expo;
+        tolerance = (7 - intSize) - expo;
     }
     // CLIP NEGATIVE TOLERANCES
     if (tolerance < 0)
@@ -455,7 +455,8 @@ float convertExtended()
         // EXPAND RIGHT
         expansionType = 2;
         expansion = (expo)-decimalPlaces;
-        digitsSize = intSize + abs((expo)-decimalPlaces);
+        digitsSize = abs((expansion));
+        tolerance = digitsSize;
     }
 
     Serial.print("EXPO: ");
@@ -495,7 +496,7 @@ float convertExtended()
       	converted = nonExp * nuke;
       	// OVF FILTER
         //converted = nonExp * pow(10, expo);
-        return converted - 0.001 ; //this is the unit limit I think, *10 or move to right will result to ovf
+        return converted; //this is the unit limit I think, *10 or move to right will result to ovf
     }
     else
     {
