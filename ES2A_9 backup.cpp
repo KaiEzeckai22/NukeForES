@@ -69,7 +69,7 @@ void displayData()
     float convertedValue = 0;
     if (detectString())
     {
-        int extractValue = processExtract();
+        int extractValue = extractionProcess();
         convertedValue = convertExtended();
 
         // SERIAL DISPLAY
@@ -117,7 +117,7 @@ void printAll(int validity, float convertedValue)
         Serial.print("IGNORED: ");
         Serial.println(ignored);
         Serial.print("CONVERTED VALUE: ");
-        if (digitsLength > 6)
+        if (digitsSize > 6)
         {
             Serial.println("OVERFLOW");
         }
@@ -169,7 +169,7 @@ void displayAll(int validity, float convertedValue)
         delay(WT);
         allClear();
         row1Display("CONVERTED VALUE:");
-        if (digitsLength > 6)
+        if (digitsSize > 6)
         {
             row2Display("OVERFLOW");
         }
@@ -419,14 +419,6 @@ int processExtract()
         }
         for (int i = 0; i < extractSize; i++)
         {
-            if (!expFound)
-            {
-                nonExponent[i] = extract[i];
-            }
-            else
-            {
-                expFound =
-            }
             // IF DIGIT MARK DETECTED OTHERWISE IF NOT RETURN 0
             // FILTERS THE ".1" INVALIDITY
             if (isDigit(extract[i]))
@@ -702,7 +694,7 @@ void clearAllArray()
     nonExponentSize = 0;
     exponentSize = 0;
     ignoredSize = 0;
-    digitsLength = 0;
+    digitsSize = 0;
 }
 
 // METHODS FOR DISPLAY ------------------------
@@ -858,6 +850,11 @@ float convertExtended()
 
 int extractionProcess()
 {
+  intSize = 0;
+  decimalPlaces = 0;
+  nonExponentSize = 0;
+  exponentSize = 0;
+  digitsSize =0;
     int state = 0;
     bool dotFound = 0;
     bool nonExpFound = 0;
@@ -899,7 +896,9 @@ int extractionProcess()
                     partiality = 1;
                     state = 3;
                 }
-            } else {
+            }
+            else
+            {
                 return -1;
             }
 
@@ -961,7 +960,7 @@ int extractionProcess()
         case 1: // NON EXPONENT DECIMAL
             if (checkValid(extract[i]))
             {
-                nonExponent[i-(negFound+intSize+dotFound)] = extract[i]; // NEEDS SHIFT i @ nonExponent 
+                nonExponent[i - (negFound + intSize + dotFound)] = extract[i]; // NEEDS SHIFT i @ nonExponent
                 decimalPlaces++;
                 nonExponentSize++;
             }
@@ -974,7 +973,7 @@ int extractionProcess()
         case 2:
             if (checkValid(extract[i]))
             {
-                exponent[i-(negFound+intSize+dotFound+decimalPlaces)] = extract[i]; // NEEDS SHIFT i @ exponent 
+                exponent[i - (negFound + intSize + dotFound + decimalPlaces)] = extract[i]; // NEEDS SHIFT i @ exponent
                 exponentSize++;
             }
             else
@@ -984,7 +983,7 @@ int extractionProcess()
             }
             break;
         case 3:
-            ignored[i-(negFound+intSize+dotFound+decimalPlaces+exponentSize)] = extract[i]; // NEEDS SHIFT i @ ignored 
+            ignored[i - (negFound + intSize + dotFound + decimalPlaces + exponentSize)] = extract[i]; // NEEDS SHIFT i @ ignored
             ignoredSize++;
             break;
 
@@ -992,4 +991,9 @@ int extractionProcess()
             break;
         }
     }
+    if (!partiality)
+    {
+        return 1;
+    }
+    return 2;
 }
