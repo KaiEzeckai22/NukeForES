@@ -14,7 +14,7 @@ int decimalPlaces = 0;
 int tolerance = 0;
 int digitsSize = 0;
 //String toTest[] = {"0aaKKK-7.23-24", "0aaKKK-7.23.-24", "0aaKKK-7..7-8"};
-String toTest[] = {"0aaKKK-e1", "0aaKKK-7.2eabc", "0aaKKK7.34e1a", "0aaKKK7e-1", "0aaKKK7.6e.5", "0aaKKK7.2..6e5", "0aaKKK7.66e-3", "0aaKKK7.6e8", "0aaKKK-7.6"};
+String toTest[] = {"0aaKKK-7.23a", "0aaKKK-7.2eabc", "0aaKKK7.34e1a", "0aaKKK7e-1", "0aaKKK7.6e.5", "0aaKKK7.2..6e5", "0aaKKK7.66e-3", "0aaKKK7.6e8", "0aaKKK-7.6"};
 int toTestSize = sizeof(toTest) / sizeof(toTest[0]);
 int start = 0;
 int end = 0;
@@ -580,19 +580,12 @@ int extractionProcess()
             default:
                 break;
             }
+            break;
         case 'e':
             switch (state)
             {
             case 0:
-                if (nonExpFound)
-                {
-                    expFound = 1;
-                    state = 2;
-                }
-                else
-                {
-                    invalid = 1;
-                }
+                state = 2;
                 break;
             case 1:
                 state = 2;
@@ -605,14 +598,22 @@ int extractionProcess()
                 break;
             }
             break;
-        default:
-            if (!checkValid(extract[i]))
-            {
-                partiality = 1;
-                state = 3;
-            }
-            break;
         }
+        
+        if (!checkValid(extract[i])&&extract[i]!='e')
+        {
+            partiality = 1;
+            state = 3;
+        }
+        /*
+        if (extract[i] == 'e')
+        {
+            Serial.println("TRIGGERED");
+            partiality = ;
+            expFound = 1;
+            state = 2;
+        }*/
+
         // EXTRACTION
         switch (state)
         {
@@ -634,7 +635,7 @@ int extractionProcess()
             //nonExponent[i - (negFound + intSize + dotFound) - 1] = extract[i]; // NEEDS SHIFT i @ nonExponent
 
             break;
-        case 2:
+        case 2: // HMMM
             //exponent[i - (negFound + intSize + dotFound + decimalPlaces) - 1] = extract[i]; // NEEDS SHIFT i @ exponent
             if (isDigit(extract[i]))
             {
@@ -642,18 +643,22 @@ int extractionProcess()
                 exponentSize++;
             }
             break;
-        case 3:
+        case 3: // EXPONENT AND IGNORED
             //ignored[i - (negFound + intSize + dotFound + decimalPlaces + exponentSize) - 1] = extract[i]; // NEEDS SHIFT i @ ignored
             ignoredSize++;
+
             break;
         case 4:
             break;
         default:
             break;
         }
+
         Serial.println();
         Serial.print("EXT: ");
         Serial.print(extract[i]);
+        Serial.print(" / STATE: ");
+        Serial.print(state);
         Serial.print("   / Neg: ");
         Serial.print(negFound);
         Serial.print(" / Int: ");
