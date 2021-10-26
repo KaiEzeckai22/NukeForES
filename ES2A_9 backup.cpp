@@ -35,7 +35,17 @@ void setup()
 
 void loop()
 {
-
+    if (Serial.available() > 0)
+    {
+        //String input = Serial.readString();
+        String input = "KKK";
+        input.concat(Serial.readString());
+        injectToBuffer(input);
+        displayData();
+        clearAllArray();
+        delay(WT);
+    }
+    /*
     for (int i = 0; i < toTestSize; i++)
     {
         Serial.println("------------------------------------------");
@@ -54,7 +64,7 @@ void loop()
         displayData();
         clearAllArray();
         delay(WT);
-    }
+    }*/
 }
 
 void injectToBuffer(String thisString)
@@ -630,7 +640,7 @@ int extractionProcess()
             partiality = 1;
             state = 3;
         }
-        
+
         // EXTRACTION
         switch (state)
         {
