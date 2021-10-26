@@ -14,7 +14,7 @@ int decimalPlaces = 0;
 int tolerance = 0;
 int digitsSize = 0;
 //String toTest[] = {"0aaKKK-7.23-24", "0aaKKK-7.23.-24", "0aaKKK-7..7-8"};
-String toTest[] = {"0aaKKK42abv", "0aaKKK4.2", "0aaKKK7.6e5", "0aaKKK7..6e5", "0aaKKK7.66e-3", "0aaKKK7.6e8", "0aaKKK-7.6"};
+String toTest[] = {"0aaKKK-.34", "0aaKKKd23", "0aaKKKa7.6e.5", "0aaKKK7..6e5", "0aaKKK7.66e-3", "0aaKKK7.6e8", "0aaKKK-7.6"};
 int toTestSize = sizeof(toTest) / sizeof(toTest[0]);
 int start = 0;
 int end = 0;
@@ -506,10 +506,13 @@ int extractionProcess()
     bool negFound = 0;
     bool negAftE = 0;
 
+    bool invalid = 0;
+
     // DETECT INVALID START (err,a.b,a23)
     if (!checkValid(extract[0]))
     {
-        return 0;
+        invalid = 1;
+        // return 0;
     }
 
     for (int i = 0; i < extractSize; i++)
@@ -546,36 +549,52 @@ int extractionProcess()
                     state = 3;
                 }
                 break;
+            default:
+                break;
             }
+
             break;
         case '.':
             switch (state)
             {
             case 0:
-                dotFound = 1;
-                state = 1;
+                if (nonExpFound)
+                {
+                    dotFound = 1;
+                    state = 1;
+                }
+                else
+                {
+                    invalid = 1;
+                }
                 break;
             case 1:
                 partiality = 1;
                 state = 3;
+                //return 0;
                 break;
             case 2:
-                return 0;
+                invalid = 1;
+                //return 0;
+                break;
+            default:
                 break;
             }
         case 'e':
-            if (!eFound)
+            switch (state)
             {
-                if (state == 2)
-                {
-                    eFound = 1;
-                    state = 2;
-                }
-            }
-            else
-            {
+            case 0:
+                state = 2;
+                break;
+            case 1:
+                state = 2;
+                break;
+            case 2:
                 partiality = 1;
                 state = 3;
+                break;
+            default:
+                break;
             }
             break;
         default:
@@ -591,8 +610,10 @@ int extractionProcess()
         {
         case 0: // NON EXPONENT INTEGER
             //nonExponent[i] = extract[i];
-            //nonExpFound = 1;
-            intSize++;
+            if(isDigit(extract[i])){
+                nonExpFound = 1;
+                intSize++;
+            }
             nonExponentSize++;
             break;
         case 1: // NON EXPONENT DECIMAL
@@ -612,7 +633,8 @@ int extractionProcess()
             //ignored[i - (negFound + intSize + dotFound + decimalPlaces + exponentSize) - 1] = extract[i]; // NEEDS SHIFT i @ ignored
             ignoredSize++;
             break;
-
+        case 4:
+            break;
         default:
             break;
         }
@@ -631,9 +653,14 @@ int extractionProcess()
     Serial.print(" / Ign: ");
     Serial.print(ignoredSize);
     Serial.println();
+    if (invalid)
+    {
+        return 0;
+    }
     if (!partiality)
     {
         return 1;
     }
+
     return 2;
 }
