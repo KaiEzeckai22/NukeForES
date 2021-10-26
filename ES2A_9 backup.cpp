@@ -14,7 +14,7 @@ int decimalPlaces = 0;
 int tolerance = 0;
 int digitsSize = 0;
 //String toTest[] = {"0aaKKK-7.23-24", "0aaKKK-7.23.-24", "0aaKKK-7..7-8"};
-String toTest[] = {"0aaKKK42","0aaKKK4.2e","0aaKKK7.6e5", "0aaKKK7.66e-3", "0aaKKK7.6e8", "0aaKKK-7.6"};
+String toTest[] = {"0aaKKK42abv", "0aaKKK4.2", "0aaKKK7.6e5", "0aaKKK7..6e5", "0aaKKK7.66e-3", "0aaKKK7.6e8", "0aaKKK-7.6"};
 int toTestSize = sizeof(toTest) / sizeof(toTest[0]);
 int start = 0;
 int end = 0;
@@ -91,9 +91,9 @@ void displayData()
 void printAll(int validity, float convertedValue)
 {
     Serial.println();
-  
-        Serial.print("STRING VALUE: ");
-        Serial.println(extract);
+
+    Serial.print("STRING VALUE: ");
+    Serial.println(extract);
     Serial.print("STRING IS ");
     switch (validity)
     {
@@ -109,7 +109,7 @@ void printAll(int validity, float convertedValue)
     default:
         break;
     }
-    if (1/*validity*/)
+    if (1 /*validity*/)
     {
         Serial.print("NON EXP: ");
         Serial.println(nonExponent);
@@ -518,65 +518,59 @@ int extractionProcess()
         switch (extract[i])
         {
         case '-':
-            // DETECT INVALID
-            if (i == 0)
+            switch (state)
             {
-                negFound = 1;
-            }
-            else if (eFound)
-            {
-                // DETECT NEGATIVE AFTER E (e-12)
-                if (!negAftE)
+            case 0:
+                if (i == 0)
                 {
-                    negAftE = 1;
-                    exponent[0] = extract[i];
-                    exponentSize++;
+                    negFound = 1;
                 }
-                // DOUBLE NEGATIVE AFTER (e-123- ==> e-123 , -)
                 else
                 {
                     partiality = 1;
                     state = 3;
                 }
-            }
-            else
-            {
-                return 0;
-            }
-
-            break;
-        case '.':
-            if (!dotFound)
-            {
-                // DETECT IF NO NUMBER YET THUS FILTER (.12 ==> x)
-                if (!nonExpFound)
-                {
-                    return 0;
-                }
-              if(state==0){
-
-                dotFound = 1;
-                state = 1;
-              }
-              
-            }
-            else
-            {
+                break;
+            case 1:
                 partiality = 1;
                 state = 3;
-            }
-            if (state==2)
-            {
-                return 0;
+                break;
+            case 2:
+                if (!negAftE)
+                {
+                    negAftE = 1;
+                }
+                else
+                {
+                    partiality = 1;
+                    state = 3;
+                }
+                break;
             }
             break;
+        case '.':
+            switch (state)
+            {
+            case 0:
+                dotFound = 1;
+                state = 1;
+                break;
+            case 1:
+                partiality = 1;
+                state = 3;
+                break;
+            case 2:
+                return 0;
+                break;
+            }
         case 'e':
             if (!eFound)
             {
-              if(state==2){
-                eFound = 1;
-                state = 2;
-              }
+                if (state == 2)
+                {
+                    eFound = 1;
+                    state = 2;
+                }
             }
             else
             {
@@ -585,53 +579,35 @@ int extractionProcess()
             }
             break;
         default:
+            if (!checkValid(extract[i]))
+            {
+                partiality = 1;
+                state = 3;
+            }
             break;
         }
         // EXTRACTION
         switch (state)
         {
         case 0: // NON EXPONENT INTEGER
-            if (checkValid(extract[i]))
-            {
-                nonExponent[i] = extract[i];
-                nonExpFound = 1;
-                intSize++;
-                nonExponentSize++;
-            }
-            else
-            {
-                partiality = 1;
-                state = 3;
-            }
+            //nonExponent[i] = extract[i];
+            //nonExpFound = 1;
+            //intSize++;
+            //nonExponentSize++;
             break;
-        case 1: // NON EXPONENT DECIMAL
-            if (checkValid(extract[i]))
-            {
-                nonExponent[i - (negFound + intSize + dotFound) -1 ] = extract[i]; // NEEDS SHIFT i @ nonExponent
-                decimalPlaces++;
-                nonExponentSize++;
-            }
-            else
-            {
-                partiality = 1;
-                state = 3;
-            }
+        case 1:                                                                // NON EXPONENT DECIMAL
+            //nonExponent[i - (negFound + intSize + dotFound) - 1] = extract[i]; // NEEDS SHIFT i @ nonExponent
+            //decimalPlaces++;
+            //nonExponentSize++;
+
             break;
         case 2:
-            if (checkValid(extract[i]))
-            {
-                exponent[i - (negFound + intSize + dotFound + decimalPlaces) -1 ] = extract[i]; // NEEDS SHIFT i @ exponent
-                exponentSize++;
-            }
-            else
-            {
-                partiality = 1;
-                state = 3;
-            }
+            //exponent[i - (negFound + intSize + dotFound + decimalPlaces) - 1] = extract[i]; // NEEDS SHIFT i @ exponent
+            //exponentSize++;
             break;
         case 3:
-            ignored[i - (negFound + intSize + dotFound + decimalPlaces + exponentSize) -1 ] = extract[i]; // NEEDS SHIFT i @ ignored
-            ignoredSize++;
+            //ignored[i - (negFound + intSize + dotFound + decimalPlaces + exponentSize) - 1] = extract[i]; // NEEDS SHIFT i @ ignored
+            //ignoredSize++;
             break;
 
         default:
