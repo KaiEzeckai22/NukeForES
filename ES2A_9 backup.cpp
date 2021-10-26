@@ -14,7 +14,7 @@ int decimalPlaces = 0;
 int tolerance = 0;
 int digitsSize = 0;
 //String toTest[] = {"0aaKKK-7.23-24", "0aaKKK-7.23.-24", "0aaKKK-7..7-8"};
-String toTest[] = {"0aaKKK-7.23a", "0aaKKK-7.2eabc", "0aaKKK7.34e1a", "0aaKKK7e-1", "0aaKKK7.6e.5", "0aaKKK7.2..6e5", "0aaKKK7.66e-3", "0aaKKK7.6e8", "0aaKKK-7.6"};
+String toTest[] = {"0aaKKK-7.23eea", "0aaKKK-ee123", "0aaKKK7.34e1a", "0aaKKK7e1e-1", "0aaKKK7.6e.5", "0aaKKK7.2..6e5", "0aaKKK7.66e-3", "0aaKKK7.6e8", "0aaKKK-7.6"};
 int toTestSize = sizeof(toTest) / sizeof(toTest[0]);
 int start = 0;
 int end = 0;
@@ -574,7 +574,7 @@ int extractionProcess()
                 //return 0;
                 break;
             case 2:
-                invalid = 1;
+                state = 1;
                 //return 0;
                 break;
             default:
@@ -585,10 +585,35 @@ int extractionProcess()
             switch (state)
             {
             case 0:
-                state = 2;
+                if (nonExpFound)
+                {
+                    if (!expFound)
+                    {
+                        expFound = 1;
+                        state = 2;
+                    }
+                    else
+                    {
+                        partiality = 1;
+                        state = 3;
+                    }
+                }
+                else
+                {
+                    invalid = 1;
+                }
                 break;
             case 1:
-                state = 2;
+                if (!expFound)
+                {
+                    expFound = 1;
+                    state = 2;
+                }
+                else
+                {
+                    partiality = 1;
+                    state = 3;
+                }
                 break;
             case 2:
                 partiality = 1;
@@ -605,7 +630,7 @@ int extractionProcess()
             partiality = 1;
             state = 3;
         }
-
+        
         // EXTRACTION
         switch (state)
         {
@@ -645,6 +670,8 @@ int extractionProcess()
             ignoredSize++;
             break;
         case 4:
+            ignored[ignoredSize] = extract[i];
+            ignoredSize++;
             break;
         default:
             break;
