@@ -599,31 +599,23 @@ int extractionProcess()
             }
             break;
         }
-        
-        if (!checkValid(extract[i])&&extract[i]!='e')
+
+        if (!checkValid(extract[i]) && extract[i] != 'e')
         {
             partiality = 1;
             state = 3;
         }
-        /*
-        if (extract[i] == 'e')
-        {
-            Serial.println("TRIGGERED");
-            partiality = ;
-            expFound = 1;
-            state = 2;
-        }*/
 
         // EXTRACTION
         switch (state)
         {
         case 0: // NON EXPONENT INTEGER
-            //nonExponent[i] = extract[i];
             if (isDigit(extract[i]))
             {
                 nonExpFound = 1;
                 intSize++;
             }
+            nonExponent[nonExponentSize] = extract[i];
             nonExponentSize++;
             break;
         case 1: // NON EXPONENT DECIMAL
@@ -631,22 +623,26 @@ int extractionProcess()
             {
                 decimalPlaces++;
             }
+            nonExponent[nonExponentSize] = extract[i]; // NEEDS SHIFT i @ nonExponent
             nonExponentSize++;
-            //nonExponent[i - (negFound + intSize + dotFound) - 1] = extract[i]; // NEEDS SHIFT i @ nonExponent
-
             break;
-        case 2: // HMMM
-            //exponent[i - (negFound + intSize + dotFound + decimalPlaces) - 1] = extract[i]; // NEEDS SHIFT i @ exponent
-            if (isDigit(extract[i]))
+        case 2:
+            if (!(extract[i] == 'e'))
             {
-                expFound = 1;
+                exponent[exponentSize] = extract[i]; // NEEDS SHIFT i @ exponent
                 exponentSize++;
             }
             break;
         case 3: // EXPONENT AND IGNORED
             //ignored[i - (negFound + intSize + dotFound + decimalPlaces + exponentSize) - 1] = extract[i]; // NEEDS SHIFT i @ ignored
+            if (extract[i - 1] == 'e')
+            {
+                // ADD IT BACK IN
+                ignored[ignoredSize] = extract[i - 1];
+                ignoredSize++;
+            }
+            ignored[ignoredSize] = extract[i];
             ignoredSize++;
-
             break;
         case 4:
             break;
