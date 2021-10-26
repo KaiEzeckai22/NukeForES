@@ -592,28 +592,45 @@ int extractionProcess()
         case 0: // NON EXPONENT INTEGER
             //nonExponent[i] = extract[i];
             //nonExpFound = 1;
-            //intSize++;
-            //nonExponentSize++;
+            intSize++;
+            nonExponentSize++;
             break;
-        case 1:                                                                // NON EXPONENT DECIMAL
+        case 1: // NON EXPONENT DECIMAL
+            if (!(extract[i] == '.'))
+            {
+                decimalPlaces++;
+            }
+            nonExponentSize++;
             //nonExponent[i - (negFound + intSize + dotFound) - 1] = extract[i]; // NEEDS SHIFT i @ nonExponent
-            //decimalPlaces++;
-            //nonExponentSize++;
 
             break;
         case 2:
             //exponent[i - (negFound + intSize + dotFound + decimalPlaces) - 1] = extract[i]; // NEEDS SHIFT i @ exponent
-            //exponentSize++;
+            exponentSize++;
             break;
         case 3:
             //ignored[i - (negFound + intSize + dotFound + decimalPlaces + exponentSize) - 1] = extract[i]; // NEEDS SHIFT i @ ignored
-            //ignoredSize++;
+            ignoredSize++;
             break;
 
         default:
             break;
         }
     }
+    Serial.println();
+    Serial.print("Neg: ");
+    Serial.print(negFound);
+    Serial.print(" / Int: ");
+    Serial.print(intSize);
+    Serial.print(" / Dot: ");
+    Serial.print(dotFound);
+    Serial.print(" / Dec: ");
+    Serial.print(decimalPlaces);
+    Serial.print(" / Expo: ");
+    Serial.print(exponentSize);
+    Serial.print(" / Ign: ");
+    Serial.print(ignoredSize);
+    Serial.println();
     if (!partiality)
     {
         return 1;
