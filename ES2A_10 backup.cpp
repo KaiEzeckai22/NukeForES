@@ -36,13 +36,7 @@ void loop()
         displayData();
         clearAllArray();
         delay(WT);
-    }
-    else
-    {
-        delay(WT);
         allClear();
-        row1Display("  ENTER SERIAL  ");
-        row2Display("      DATA      ");
     }
 }
 
@@ -69,7 +63,6 @@ void displayData()
     else
     {
         Serial.println("NONE FOUND");
-        delay(WT);
         allClear();
         row1Display("NONE FOUND");
         delay(WT);
@@ -148,14 +141,20 @@ void displayAll(int validity, float convertedValue)
         allClear();
         row1Display("NON EXP: ");
         row2Display(nonExponent);
-        delay(WT);
-        allClear();
-        row1Display("EXP: ");
-        row2Display(exponent);
-        delay(WT);
-        allClear();
-        row1Display("IGNORED: ");
-        row2Display(ignored);
+        if (exponentSize)
+        {
+            delay(WT);
+            allClear();
+            row1Display("EXP: ");
+            row2Display(exponent);
+        }
+        if (ignoredSize)
+        {
+            delay(WT);
+            allClear();
+            row1Display("IGNORED: ");
+            row2Display(ignored);
+        }
         delay(WT);
         allClear();
         row1Display("CONVERTED VALUE:");
@@ -246,16 +245,6 @@ bool checkValid(char toCheck)
 {
     // RETURN 0 INVALID, 1 VALID
     if (isDigit(toCheck) || toCheck == '-' || toCheck == '.')
-    {
-        return 1;
-    }
-    return 0;
-}
-
-bool checkValidExp(char toCheck)
-{
-    // RETURN 0 INVALID, 1 VALID
-    if (isDigit(toCheck) || toCheck == '-')
     {
         return 1;
     }
