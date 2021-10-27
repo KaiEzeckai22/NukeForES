@@ -20,6 +20,7 @@ int start = 0;
 int end = 0;
 String output = "";
 String stringBuffer = "";
+int type = 0;
 
 #include <LiquidCrystal.h>
 
@@ -29,23 +30,29 @@ void setup()
 {
     lcd.begin(16, 2);
     Serial.begin(9600);
-    lcd.print("0123456789ABCDEF");
-    //test();
 }
 
 void loop()
 {
+  	
+  	
     if (Serial.available() > 0)
     {
-        String input = Serial.readString();
+        String input = Serial.readString();   
+      	// PRUNE
         //String input = "KKK";
         //input.concat(Serial.readString());
         injectToBuffer(input);
         displayData();
         clearAllArray();
         delay(WT);
+    } else {
+      	delay(WT);
+		allClear();
+      row1Display("  ENTER SERIAL  ");
+      row2Display("      DATA      ");
     }
-    /*
+    /* PRUNE
     for (int i = 0; i < toTestSize; i++)
     {
         Serial.println("------------------------------------------");
@@ -90,11 +97,10 @@ void displayData()
     else
     {
         Serial.println("NONE FOUND");
-
-        delay(1000);
+        delay(WT);
         allClear();
         row1Display("NONE FOUND");
-        delay(3000);
+        delay(WT);
     }
 }
 
@@ -119,7 +125,7 @@ void printAll(int validity, float convertedValue)
     default:
         break;
     }
-    if (1 /*validity*/)
+    if (validity)
     {
         Serial.print("NON EXP: ");
         Serial.println(nonExponent);
@@ -128,13 +134,14 @@ void printAll(int validity, float convertedValue)
         Serial.print("IGNORED: ");
         Serial.println(ignored);
         Serial.print("CONVERTED VALUE: ");
-        if (digitsSize > 20)
+        Serial.println(convertedValue, tolerance);
+        if ((type == 0 || type == 1) && ((abs(convertedValue) > 4294967040.0) || ((intSize + decimalPlaces) > 7)))
         {
-            Serial.println("OVERFLOW");
+            Serial.println("NUMBER TOO LARGE");
         }
-        else
+        else if (type == 2 && (digitsSize + 2) > 16)
         {
-            Serial.println(convertedValue, tolerance);
+            Serial.println("OUT OF BOUNDS");
         }
         Serial.println();
     }
@@ -180,9 +187,13 @@ void displayAll(int validity, float convertedValue)
         delay(WT);
         allClear();
         row1Display("CONVERTED VALUE:");
-        if (digitsSize > 20)
+        if ((type == 0 || type == 1) && ((abs(convertedValue) > 4294967040.0) || ((intSize + decimalPlaces) > 7)))
         {
-            row2Display("OVERFLOW");
+            row2Display("NUMBER TOO LARGE");
+        }
+        else if (type == 2 && (digitsSize + 2) > 16)
+        {
+            row2Display("OUT OF BOUNDS");
         }
         else
         {
@@ -191,18 +202,6 @@ void displayAll(int validity, float convertedValue)
         delay(WT);
         allClear();
     }
-}
-
-void displayInvalid()
-{
-    delay(1000);
-    allClear();
-    row1Display("STRING VALUE:");
-    row2Display(extract);
-    delay(3000);
-    allClear();
-    row1Display("STRING IS");
-    row2Display("INVALID");
 }
 
 bool detectString()
@@ -420,9 +419,11 @@ void allClear()
 
 float convertExtended()
 {
+    float nonExp = 0;
     int expo = 0;
+
+    nonExp = convertToFloat(nonExponent);
     expo = atoi(exponent);
-    float nonExp = convertToFloat(nonExponent);
     tolerance = 0;
 
     if ((intSize + decimalPlaces) < 6)
@@ -440,25 +441,24 @@ float convertExtended()
     }
     // IDENTIFY IF THE NUMBER EXPANDS (DECIMAL PLACES) AND BY HOW MUCH
     int expansion = 0;
-    int expansionType = 0;
-
+    type = 0;
     digitsSize = intSize + decimalPlaces;
     if ((expo) >= intSize)
     {
         // EXPAND LEFT
-        expansionType = 1;
-        expansion = expo - intSize;
+        type = 1;
+        expansion = expo - decimalPlaces;
         digitsSize = intSize + decimalPlaces + expansion;
     }
     else if ((0 - expo) >= decimalPlaces)
     {
         // EXPAND RIGHT
-        expansionType = 2;
-        expansion = (expo)-decimalPlaces;
-        digitsSize = abs((expansion));
-        tolerance = digitsSize;
+        type = 2;
+        expansion = abs((expo) + intSize);
+        digitsSize = intSize + decimalPlaces + expansion + 1;
+        tolerance = digitsSize - 1;
     }
-
+	/* PRUNE
     Serial.print("EXPO: ");
     Serial.println(expo);
 
@@ -469,7 +469,7 @@ float convertExtended()
     Serial.println(decimalPlaces);
 
     Serial.print("EXPANSION TYPE: ");
-    Serial.println(expansionType);
+    Serial.println(type);
 
     Serial.print("EXPANSION SIZE: ");
     Serial.println(expansion);
@@ -479,27 +479,46 @@ float convertExtended()
 
     Serial.print("DIGITS SIZE: ");
     Serial.println(digitsSize);
-
+	*/
     float converted = 0;
     if (expo == NULL)
     {
         // NON EXP FILTER
+      	// PRUNE
+        // Serial.println("@ NULL");
         tolerance = decimalPlaces;
         converted = nonExp; //inaccurate sometimes (more than 1 or 2 decimal places)
     }
-    else if ((expo + decimalPlaces) > 6)
+    else if (type == 1)
     {
-        double nuke = 1;
-      	for(int i = 0; i < expo; i++){
-        	nuke = nuke * 10;
+        Serial.println("@ MID");
+        float nuke = 1;
+        for (int i = 0; i < decimalPlaces; i++)
+        {
+            nonExp = nonExp * 10;
         }
-      	converted = nonExp * nuke;
-      	// OVF FILTER
-        //converted = nonExp * pow(10, expo);
-        return converted; //this is the unit limit I think, *10 or move to right will result to ovf
+        for (int i = 0; i < expo - decimalPlaces; i++)
+        {
+            nuke = nuke * 10;
+        }
+      	/* PRUNE
+        Serial.print("nonExp: ");
+        Serial.println(nonExp);
+        Serial.print("nuke: ");
+        Serial.println(nuke);
+		*/
+        long sohInt = (long)(nonExp + 0.5);
+      	/* PRUNE
+        Serial.print("sohInt: ");
+        Serial.println(sohInt);
+		*/ 
+        converted = sohInt * nuke; //this is the unit limit I think, *10 or move to right will result to ovf
+        return converted;
     }
-    else
+    else if (type == 2)
     {
+        // PRUNE
+        // Serial.println("@ DEFAULT");
         // DEFAULT FILTER
         converted = nonExp * pow(10, expo);
     }
@@ -727,7 +746,7 @@ int extractionProcess()
         default:
             break;
         }
-
+		/* PRUNE 
         Serial.println();
         Serial.print("EXT: ");
         Serial.print(extract[i]);
@@ -742,7 +761,9 @@ int extractionProcess()
         Serial.print(" / Ign: ");
         Serial.print(ignoredSize);
         Serial.println();
+        */
     }
+  	/* PRUNE 
     Serial.println();
     Serial.print("Neg: ");
     Serial.print(negFound);
@@ -757,7 +778,7 @@ int extractionProcess()
     Serial.print(" / Ign: ");
     Serial.print(ignoredSize);
     Serial.println();
-  
+	*/
     if (state == 4)
     {
         return 0;
