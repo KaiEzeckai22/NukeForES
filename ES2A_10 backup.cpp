@@ -372,6 +372,10 @@ float convertExtended()
         {
             nuke = nuke * 10;
         }
+        Serial.print("nonExp: ");
+        Serial.println(nonExp);
+        Serial.print("nuke: ");
+        Serial.println(nuke);
         long sohInt = 0;
         if (nonExp > 0)
         {
@@ -381,6 +385,9 @@ float convertExtended()
         {
             sohInt = (long)(nonExp - 0.5);
         }
+
+        Serial.print("sohInt: ");
+        Serial.println(sohInt);
         converted = sohInt * nuke;
         return converted;
     }
