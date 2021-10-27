@@ -1,4 +1,3 @@
-//#include <string>
 #define WT 1500
 char buffer[50];
 char extract[47];
@@ -13,13 +12,13 @@ int intSize = 0;
 int decimalPlaces = 0;
 int tolerance = 0;
 int digitsSize = 0;
+// PRUNE
 //String toTest[] = {"0aaKKK-7.23-24", "0aaKKK-7.23.-24", "0aaKKK-7..7-8"};
-String toTest[] = {"0aaKKK-7.23eea", "0aaKKK-ee123", "0aaKKK7.34e1a", "0aaKKK7e1e-1", "0aaKKK7.6e.5", "0aaKKK7.2..6e5", "0aaKKK7.66e-3", "0aaKKK7.6e8", "0aaKKK-7.6"};
-int toTestSize = sizeof(toTest) / sizeof(toTest[0]);
+//String toTest[] = {"0aaKKK-7.23eea", "0aaKKK-ee123", "0aaKKK7.34e1a", "0aaKKK7e1e-1", "0aaKKK7.6e.5", "0aaKKK7.2..6e5", "0aaKKK7.66e-3", "0aaKKK7.6e8", "0aaKKK-7.6"};
+//int toTestSize = sizeof(toTest) / sizeof(toTest[0]);
 int start = 0;
 int end = 0;
 String output = "";
-String stringBuffer = "";
 int type = 0;
 
 #include <LiquidCrystal.h>
@@ -34,23 +33,24 @@ void setup()
 
 void loop()
 {
-  	
-  	
+
     if (Serial.available() > 0)
     {
-        String input = Serial.readString();   
-      	// PRUNE
+        String input = Serial.readString();
+        // PRUNE
         //String input = "KKK";
         //input.concat(Serial.readString());
         injectToBuffer(input);
         displayData();
         clearAllArray();
         delay(WT);
-    } else {
-      	delay(WT);
-		allClear();
-      row1Display("  ENTER SERIAL  ");
-      row2Display("      DATA      ");
+    }
+    else
+    {
+        delay(WT);
+        allClear();
+        row1Display("  ENTER SERIAL  ");
+        row2Display("      DATA      ");
     }
     /* PRUNE
     for (int i = 0; i < toTestSize; i++)
@@ -443,14 +443,16 @@ float convertExtended()
     int expansion = 0;
     type = 0;
     digitsSize = intSize + decimalPlaces;
-    if ((expo) >= intSize)
+
+    if ((expo > 0) && ((expo - decimalPlaces) >= 0))
     {
         // EXPAND LEFT
         type = 1;
         expansion = expo - decimalPlaces;
         digitsSize = intSize + decimalPlaces + expansion;
     }
-    else if ((0 - expo) >= decimalPlaces)
+
+    if ((expo < 0) && (((0 - expo) - intSize) >= 0))
     {
         // EXPAND RIGHT
         type = 2;
@@ -458,7 +460,8 @@ float convertExtended()
         digitsSize = intSize + decimalPlaces + expansion + 1;
         tolerance = digitsSize - 1;
     }
-	/* PRUNE
+
+    /* PRUNE
     Serial.print("EXPO: ");
     Serial.println(expo);
 
@@ -467,10 +470,10 @@ float convertExtended()
 
     Serial.print("DEC SIZE: ");
     Serial.println(decimalPlaces);
-
+    
     Serial.print("EXPANSION TYPE: ");
     Serial.println(type);
-
+    
     Serial.print("EXPANSION SIZE: ");
     Serial.println(expansion);
 
@@ -484,14 +487,14 @@ float convertExtended()
     if (expo == NULL)
     {
         // NON EXP FILTER
-      	// PRUNE
+        // PRUNE
         // Serial.println("@ NULL");
         tolerance = decimalPlaces;
         converted = nonExp; //inaccurate sometimes (more than 1 or 2 decimal places)
     }
     else if (type == 1)
     {
-        Serial.println("@ MID");
+        //Serial.println("@ MID");
         float nuke = 1;
         for (int i = 0; i < decimalPlaces; i++)
         {
@@ -501,21 +504,21 @@ float convertExtended()
         {
             nuke = nuke * 10;
         }
-      	/* PRUNE
+        /* PRUNE
         Serial.print("nonExp: ");
         Serial.println(nonExp);
         Serial.print("nuke: ");
         Serial.println(nuke);
 		*/
         long sohInt = (long)(nonExp + 0.5);
-      	/* PRUNE
+        /* PRUNE
         Serial.print("sohInt: ");
         Serial.println(sohInt);
-		*/ 
+		*/
         converted = sohInt * nuke; //this is the unit limit I think, *10 or move to right will result to ovf
         return converted;
     }
-    else if (type == 2)
+    else if (type == 0 || type == 2)
     {
         // PRUNE
         // Serial.println("@ DEFAULT");
@@ -746,7 +749,7 @@ int extractionProcess()
         default:
             break;
         }
-		/* PRUNE 
+        /* PRUNE 
         Serial.println();
         Serial.print("EXT: ");
         Serial.print(extract[i]);
@@ -763,7 +766,7 @@ int extractionProcess()
         Serial.println();
         */
     }
-  	/* PRUNE 
+    /* PRUNE 
     Serial.println();
     Serial.print("Neg: ");
     Serial.print(negFound);
